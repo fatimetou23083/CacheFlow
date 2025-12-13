@@ -1,0 +1,43 @@
+<div class="product-list-container">
+  <div class="header">
+    <h1>Liste des Produits</h1>
+    <button class="btn btn-primary" routerLink="/products/new">
+      + Nouveau Produit
+    </button>
+  </div>
+
+  <div *ngIf="loading" class="loading">
+    <p>Chargement...</p>
+  </div>
+
+  <div *ngIf="error" class="error">
+    <p>{{ error }}</p>
+    <button class="btn btn-secondary" (click)="loadProducts()">Réessayer</button>
+  </div>
+
+  <div *ngIf="!loading && !error && products.length === 0" class="empty">
+    <p>Aucun produit trouvé. Créez votre premier produit !</p>
+    <button class="btn btn-primary" routerLink="/products/new">
+      Créer un produit
+    </button>
+  </div>
+
+  <div *ngIf="!loading && !error && products.length > 0" class="products-grid">
+    <div *ngFor="let product of products" class="product-card">
+      <div class="product-info">
+        <h3 class="product-name">{{ product.name }}</h3>
+        <p class="product-category">{{ product.category }}</p>
+        <p class="product-price">{{ formatPrice(product.price) }}</p>
+      </div>
+      <div class="product-actions">
+        <button class="btn btn-edit" [routerLink]="['/products/edit', product.id]">
+          Modifier
+        </button>
+        <button class="btn btn-delete" (click)="deleteProduct(product.id)">
+          Supprimer
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+

@@ -1,0 +1,43 @@
+# application.yml
+server:
+  port: 8081
+
+spring:
+  mongodb:
+    uri: mongodb://localhost:27017/cacheflowdb
+    auto-index-creation: true
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 2000ms  # Timeout de connexion Redis
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+  cache:
+    type: redis
+    redis:
+      time-to-live: 600000  # 10 minutes en millisecondes
+    cache-names:
+      - products
+      - product
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,caches,redis
+  endpoint:
+    caches:
+      enabled: true
+    redis:
+      enabled: true
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
