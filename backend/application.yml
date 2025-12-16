@@ -19,10 +19,24 @@ spring:
   cache:
     type: redis
     redis:
-      time-to-live: 600000  # 10 minutes en millisecondes
+      time-to-live: 600000  # 10 minutes en millisecondes (par défaut)
     cache-names:
       - products
       - product
+      - weather
+
+# Configuration de l'API météo externe
+weather:
+  api:
+    url: https://api.openweathermap.org/data/2.5/weather
+    key: ${WEATHER_API_KEY:demo}  # Utilise la variable d'environnement WEATHER_API_KEY ou 'demo' par défaut
+    demo-mode: true  # Mode démo activé par défaut (génère des données fictives)
+    # Pour utiliser l'API réelle OpenWeatherMap :
+    # 1. Créez un compte sur https://openweathermap.org/api
+    # 2. Obtenez votre clé API gratuite
+    # 3. Définissez la variable d'environnement : export WEATHER_API_KEY=votre_cle_api
+    # 4. Ou modifiez cette ligne : key: votre_cle_api
+    # 5. Définissez demo-mode: false
 
 management:
   endpoints:

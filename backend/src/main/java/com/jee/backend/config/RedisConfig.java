@@ -52,7 +52,9 @@ public class RedisConfig {
         return template;
     }
 
-    @Bean
+    // Note: Le CacheManager principal est maintenant défini dans SeasonalCacheConfig
+    // Ce bean est conservé pour compatibilité mais n'est plus utilisé comme bean principal
+    @Bean(name = "legacyCacheManager")
     public CacheManager cacheManager(RedisConnectionFactory connectionFactory) {
         // Utiliser JdkSerializationRedisSerializer pour la sérialisation des objets
         // Compatible avec Spring Boot 4.0 (les sérialiseurs Jackson sont dépréciés)
