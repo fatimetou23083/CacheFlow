@@ -29,6 +29,8 @@ public class SeasonalCacheConfig {
 
     private static final Logger logger = LoggerFactory.getLogger(SeasonalCacheConfig.class);
     private static final String WEATHER_CACHE = "weather";
+    private static final String CURRENCY_CACHE = "currency";
+    private static final String CURRENCIES_CACHE = "currencies";
 
     /**
      * Détermine la saison actuelle et retourne le TTL approprié
@@ -83,13 +85,25 @@ public class SeasonalCacheConfig {
                 .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(serializer))
                 .disableCachingNullValues();
 
+        // Configuration spécifique pour le cache des devises avec TTL de 1 heure
+        Duration currencyTtl = Duration.ofHours(1); // 1 hour = 3600 seconds
+        RedisCacheConfiguration currencyConfig = RedisCacheConfiguration.defaultCacheConfig()
+                .entryTtl(currencyTtl)
+                .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
+                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(serializer))
+                .disableCachingNullValues();
+
         // Créer un RedisCacheWriter personnalisé avec logging des hits/misses
         RedisCacheWriter defaultWriter = RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory);
         RedisCacheWriter cacheWriter = new LoggingRedisCacheWriter(defaultWriter, connectionFactory);
 
+        logger.info("Currency cache configured with TTL: {} minutes", currencyTtl.toMinutes());
+
         return RedisCacheManager.builder(cacheWriter)
                 .cacheDefaults(defaultConfig)
                 .withCacheConfiguration(WEATHER_CACHE, weatherConfig)
+                .withCacheConfiguration(CURRENCY_CACHE, currencyConfig)
+                .withCacheConfiguration(CURRENCIES_CACHE, currencyConfig)
                 .transactionAware()
                 .build();
     }
@@ -119,7 +133,7 @@ public class SeasonalCacheConfig {
         @Override
         public byte[] get(String name, byte[] key) {
             byte[] value = delegate.get(name, key);
-            if (WEATHER_CACHE.equals(name)) {
+            if (WEATHER_CACHE.equals(name) || CURRENCY_CACHE.equals(name) || CURRENCIES_CACHE.equals(name)) {
                 if (value != null) {
                     logger.info("Cache HIT - Cache: {}, Key: {}", name, new String(key));
                 } else {
@@ -132,7 +146,7 @@ public class SeasonalCacheConfig {
         @Override
         public void put(String name, byte[] key, byte[] value, Duration ttl) {
             delegate.put(name, key, value, ttl);
-            if (WEATHER_CACHE.equals(name)) {
+            if (WEATHER_CACHE.equals(name) || CURRENCY_CACHE.equals(name) || CURRENCIES_CACHE.equals(name)) {
                 logger.info("Cache PUT - Cache: {}, Key: {}, TTL: {} minutes", 
                         name, new String(key), ttl != null ? ttl.toMinutes() : "default");
             }
@@ -141,7 +155,7 @@ public class SeasonalCacheConfig {
         @Override
         public byte[] putIfAbsent(String name, byte[] key, byte[] value, Duration ttl) {
             byte[] result = delegate.putIfAbsent(name, key, value, ttl);
-            if (WEATHER_CACHE.equals(name)) {
+            if (WEATHER_CACHE.equals(name) || CURRENCY_CACHE.equals(name) || CURRENCIES_CACHE.equals(name)) {
                 if (result == null) {
                     logger.info("Cache PUT (if absent) - Cache: {}, Key: {}, TTL: {} minutes", 
                             name, new String(key), ttl != null ? ttl.toMinutes() : "default");
@@ -157,7 +171,7 @@ public class SeasonalCacheConfig {
             RedisConnection connection = connectionFactory.getConnection();
             try {
                 connection.del(key);
-                if (WEATHER_CACHE.equals(name)) {
+                if (WEATHER_CACHE.equals(name) || CURRENCY_CACHE.equals(name) || CURRENCIES_CACHE.equals(name)) {
                     logger.info("Cache EVICT - Cache: {}, Key: {}", name, new String(key));
                 }
             } finally {
@@ -172,7 +186,7 @@ public class SeasonalCacheConfig {
                 byte[][] keys = connection.keys(pattern).toArray(new byte[0][]);
                 if (keys.length > 0) {
                     connection.del(keys);
-                    if (WEATHER_CACHE.equals(name)) {
+                    if (WEATHER_CACHE.equals(name) || CURRENCY_CACHE.equals(name) || CURRENCIES_CACHE.equals(name)) {
                         logger.info("Cache CLEAR - Cache: {}, Pattern: {}, Keys deleted: {}", 
                                 name, new String(pattern), keys.length);
                     }

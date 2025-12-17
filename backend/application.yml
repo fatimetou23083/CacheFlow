@@ -24,6 +24,8 @@ spring:
       - products
       - product
       - weather
+      - currency
+      - currencies
 
 # Configuration de l'API météo externe
 weather:
