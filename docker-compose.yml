@@ -1,0 +1,17 @@
+
+services:
+  redis:
+    image: redis:latest
+    container_name: cacheflow-redis
+    ports:
+      - "6379:6379"
+    restart: always
+
+  mongodb:
+    image: mongo:latest
+    container_name: cacheflow-mongo
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: cacheflowdb
+    restart: always

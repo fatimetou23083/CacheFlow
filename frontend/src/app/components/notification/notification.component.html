@@ -1,0 +1,37 @@
+<!-- Toast Notification -->
+<!-- Toast Notification Container -->
+<div *ngIf="show" class="fixed top-6 right-6 z-[100] flex flex-col gap-2 pointer-events-none">
+    <div *ngFor="let n of notifications | slice:0:1"
+        class="pointer-events-auto min-w-[320px] bg-slate-900/80 backdrop-blur-xl text-white p-4 rounded-xl border border-white/20 shadow-2xl flex items-start gap-4 transform transition-all duration-500 animate-[slideInRight_0.5s_ease-out]">
+
+        <!-- Icon based on type (mock logic for now, or generic bell) -->
+        <div
+            class="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+            <i class="fas fa-bell text-white text-sm"></i>
+        </div>
+
+        <div class="flex-1">
+            <h4 class="font-bold text-sm tracking-wide text-indigo-200 uppercase mb-0.5">Notification</h4>
+            <p class="text-sm text-slate-200 leading-relaxed">{{ n.message }}</p>
+        </div>
+
+        <!-- Progress bar or close button could go here -->
+    </div>
+</div>
+
+<style>
+    @keyframes slideInRight {
+        from {
+            opacity: 0;
+            transform: translateX(100%) scale(0.9);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0) scale(1);
+        }
+    }
+</style>
+
+<!-- Notification List Panel (Optional, can be toggled) -->
+<!-- For now just the toast is enough for the demo requirement of "real-time" -->

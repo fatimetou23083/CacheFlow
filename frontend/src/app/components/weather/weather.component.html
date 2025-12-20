@@ -1,0 +1,79 @@
+<div class="weather-container">
+  <div class="weather-header">
+    <h1>🌤️ Module Météo</h1>
+    <p class="subtitle">Recherchez la météo d'une ville avec cache Redis dynamique</p>
+  </div>
+
+  <!-- Formulaire de recherche -->
+  <div class="search-section">
+    <div class="search-form">
+      <div class="input-group">
+        <label for="city">Nom de la ville</label>
+        <input type="text" id="city" [(ngModel)]="city" name="city" placeholder="Ex: Paris, London, New York..."
+          class="form-control" (keypress)="onKeyPress($event)" />
+      </div>
+      <button type="button" class="btn btn-primary" (click)="getWeather()"
+        [disabled]="loading || !city || city.trim() === ''">
+        <span *ngIf="!loading">🔍 Rechercher</span>
+        <span *ngIf="loading">⏳ Chargement...</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Message d'erreur -->
+  <div *ngIf="error" class="error-message">
+    <p>⚠️ {{ error }}</p>
+  </div>
+
+  <!-- Affichage de la météo -->
+  <div *ngIf="weather && !loading" class="weather-card">
+    <div class="weather-header-card">
+      <h2>{{ weather.city }}</h2>
+      <button class="btn btn-refresh" (click)="refreshCache()" [disabled]="refreshing"
+        title="Forcer la mise à jour du cache">
+        <span *ngIf="!refreshing">🔄 Rafraîchir le cache</span>
+        <span *ngIf="refreshing">⏳ Mise à jour...</span>
+      </button>
+    </div>
+
+    <div class="weather-content">
+      <div class="weather-item temperature">
+        <div class="weather-icon">🌡️</div>
+        <div class="weather-info">
+          <span class="weather-label">Température</span>
+          <span class="weather-value">{{ weather.temp }}°C</span>
+        </div>
+      </div>
+
+      <div class="weather-item humidity">
+        <div class="weather-icon">💧</div>
+        <div class="weather-info">
+          <span class="weather-label">Humidité</span>
+          <span class="weather-value">{{ weather.humidity }}%</span>
+        </div>
+      </div>
+
+      <div class="weather-item timestamp">
+        <div class="weather-icon">🕐</div>
+        <div class="weather-info">
+          <span class="weather-label">Dernière mise à jour</span>
+          <span class="weather-value-small">{{ formatDate(weather.timestamp!) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="cache-info">
+      <p class="info-text">
+        💡 Les données sont mises en cache avec un TTL dynamique selon la saison :
+        <strong>5 minutes en été</strong>, <strong>30 minutes en hiver</strong>,
+        <strong>15 minutes en printemps/automne</strong>
+      </p>
+    </div>
+  </div>
+
+  <!-- Indicateur de chargement -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Récupération des données météo...</p>
+  </div>
+</div>

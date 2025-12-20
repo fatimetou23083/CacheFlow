@@ -1,0 +1,132 @@
+<div class="space-y-8 fade-in">
+    <!-- Header Section -->
+    <div
+        class="flex flex-col md:flex-row md:items-center justify-between gap-4 glass-card p-6 shadow-xl border-white/40">
+        <div>
+            <h2 class="text-3xl font-extrabold text-slate-800 flex items-center gap-3">
+                <span class="p-3 bg-indigo-600 rounded-2xl shadow-lg shadow-indigo-200">
+                    <i class="fas fa-coins text-white"></i>
+                </span>
+                Devises & Conversion
+            </h2>
+            <p class="text-slate-500 mt-2 font-medium ml-1">Gérez vos taux de change en temps réel</p>
+        </div>
+        <div
+            class="flex items-center gap-2 text-sm font-bold text-indigo-600 bg-indigo-50 px-4 py-2 rounded-full border border-indigo-100">
+            <span class="relative flex h-3 w-3">
+                <span
+                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-3 w-3 bg-indigo-500"></span>
+            </span>
+            Direct depuis le marché
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Taux de change Card -->
+        <div class="lg:col-span-1 glass-card p-0 shadow-2xl border-white/40 overflow-hidden flex flex-col">
+            <div class="p-6 border-b border-slate-100 bg-white/30">
+                <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fas fa-chart-line text-indigo-500"></i>
+                    Taux de change (vs USD)
+                </h3>
+            </div>
+
+            <div class="flex-grow overflow-y-auto max-h-[500px] p-4 space-y-3 custom-scrollbar">
+                <div *ngIf="currencies.length === 0"
+                    class="flex flex-col items-center justify-center py-12 text-slate-400 italic text-sm">
+                    <i class="fas fa-spinner fa-spin mb-3 text-2xl"></i>
+                    Chargement des taux...
+                </div>
+
+                <div *ngFor="let curr of currencies"
+                    class="group flex justify-between items-center bg-white/60 hover:bg-white p-4 rounded-2xl shadow-sm border border-transparent hover:border-indigo-100 transition-all duration-200">
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-600 text-xs">
+                            {{ curr.code }}
+                        </div>
+                        <span class="font-bold text-slate-700 tracking-tight">{{ curr.code }}</span>
+                    </div>
+                    <span class="text-emerald-600 font-mono font-bold text-lg tabular-nums">
+                        {{ curr.rate | number:'1.2-4' }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Convertisseur Card -->
+        <div class="lg:col-span-2 glass-card p-8 shadow-2xl border-white/40">
+            <div class="mb-8">
+                <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fas fa-calculator text-indigo-500"></i>
+                    Outil de conversion
+                </h3>
+                <p class="text-slate-500 text-sm mt-1">Convertissez instantanément vos montants</p>
+            </div>
+
+            <div class="space-y-8">
+                <div class="relative group">
+                    <label class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 block ml-1">Montant à
+                        convertir</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i class="fas fa-dollar-sign text-slate-400"></i>
+                        </div>
+                        <input type="number" [(ngModel)]="amount"
+                            class="block w-full pl-10 pr-4 py-4 bg-white/50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all duration-300 text-xl font-bold text-slate-800"
+                            placeholder="0.00">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
+                    <div class="relative">
+                        <label
+                            class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 block ml-1">Source</label>
+                        <select [(ngModel)]="fromCurrency"
+                            class="block w-full p-4 bg-white/50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all duration-300 font-bold text-slate-700 appearance-none">
+                            <option *ngFor="let c of currencies" [value]="c.code">{{c.code}}</option>
+                        </select>
+                        <div
+                            class="absolute inset-y-0 right-0 top-6 flex items-center pr-4 pointer-events-none text-slate-400">
+                            <i class="fas fa-chevron-down text-xs"></i>
+                        </div>
+                    </div>
+
+                    <div class="relative">
+                        <label
+                            class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 block ml-1">Destination</label>
+                        <select [(ngModel)]="toCurrency"
+                            class="block w-full p-4 bg-white/50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all duration-300 font-bold text-slate-700 appearance-none">
+                            <option *ngFor="let c of currencies" [value]="c.code">{{c.code}}</option>
+                        </select>
+                        <div
+                            class="absolute inset-y-0 right-0 top-6 flex items-center pr-4 pointer-events-none text-slate-400">
+                            <i class="fas fa-chevron-down text-xs"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <button (click)="convert()"
+                    class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-5 px-6 rounded-2xl shadow-xl shadow-indigo-200 flex items-center justify-center gap-3 font-bold text-lg transform hover:-translate-y-1 transition-all duration-300 active:scale-95 group">
+                    <span>Calculer la conversion</span>
+                    <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                </button>
+
+                <div *ngIf="convertedAmount !== null"
+                    class="mt-8 p-8 bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100 rounded-3xl text-center shadow-inner relative overflow-hidden group">
+                    <div
+                        class="absolute -right-4 -top-4 text-emerald-100 text-8xl opacity-30 transform rotate-12 transition-transform group-hover:rotate-0">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <p class="text-sm font-bold text-emerald-600 uppercase tracking-widest mb-2">Résultat de la
+                        conversion</p>
+                    <div class="text-4xl font-black text-slate-800 tracking-tight">
+                        {{ convertedAmount | number:'1.2-2' }} <span class="text-emerald-600">{{ toCurrency }}</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-2 font-medium">Basé sur les derniers taux du marché</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

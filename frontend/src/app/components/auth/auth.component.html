@@ -1,0 +1,101 @@
+<div class="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 fade-in">
+    <div class="max-w-md w-full glass-card p-10 shadow-2xl space-y-8 backdrop-blur-xl border border-white/30">
+        <div class="text-center">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-full mb-4 shadow-lg">
+                <i class="fas fa-shield-alt text-white text-2xl"></i>
+            </div>
+            <h2 class="text-3xl font-extrabold text-slate-800 tracking-tight">
+                {{ isLogin ? 'Bienvenue' : 'Créer un compte' }}
+            </h2>
+            <p class="mt-2 text-sm text-slate-600 font-medium">
+                {{ isLogin ? 'Connectez-vous à votre espace CacheFlow' : 'Rejoignez la plateforme dès aujourd\'hui' }}
+            </p>
+        </div>
+
+        <div *ngIf="errorMessage"
+            class="bg-red-50/80 border-l-4 border-red-500 text-red-700 p-4 rounded-md shadow-sm flex items-start gap-3 animate-pulse">
+            <i class="fas fa-exclamation-circle mt-1"></i>
+            <span class="text-sm font-medium">{{ errorMessage }}</span>
+        </div>
+
+        <form class="mt-8 space-y-6" (ngSubmit)="onSubmit()">
+            <div class="space-y-4">
+                <div *ngIf="!isLogin" class="relative">
+                    <label for="email"
+                        class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">E-mail</label>
+                    <div class="relative mt-1">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-envelope text-slate-400 text-sm"></i>
+                        </div>
+                        <input id="email" name="email" type="email" required [(ngModel)]="registerData.email"
+                            class="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl leading-5 bg-white/50 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 sm:text-sm"
+                            placeholder="votre@email.com">
+                    </div>
+                </div>
+
+                <!-- Username Field -->
+                <div class="relative">
+                    <label for="username" class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Nom
+                        d'utilisateur</label>
+                    <div class="relative mt-1">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-user text-slate-400 text-sm"></i>
+                        </div>
+
+                        <!-- Login Username -->
+                        <input *ngIf="isLogin" id="login_username" name="login_username" type="text" required
+                            [(ngModel)]="credentials.username"
+                            class="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl leading-5 bg-white/50 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 sm:text-sm"
+                            placeholder="Utilisateur">
+
+                        <!-- Register Username -->
+                        <input *ngIf="!isLogin" id="register_username" name="register_username" type="text" required
+                            [(ngModel)]="registerData.username"
+                            class="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl leading-5 bg-white/50 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 sm:text-sm"
+                            placeholder="Choisir un utilisateur">
+                    </div>
+                </div>
+
+                <!-- Password Field -->
+                <div class="relative">
+                    <label for="password" class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Mot de
+                        passe</label>
+                    <div class="relative mt-1">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-lock text-slate-400 text-sm"></i>
+                        </div>
+
+                        <!-- Login Password -->
+                        <input *ngIf="isLogin" id="login_password" name="login_password" type="password" required
+                            [(ngModel)]="credentials.password"
+                            class="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl leading-5 bg-white/50 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 sm:text-sm"
+                            placeholder="••••••••">
+
+                        <!-- Register Password -->
+                        <input *ngIf="!isLogin" id="register_password" name="register_password" type="password" required
+                            [(ngModel)]="registerData.password"
+                            class="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl leading-5 bg-white/50 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 sm:text-sm"
+                            placeholder="Créer un mot de passe">
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <button type="submit"
+                    class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-lg shadow-blue-500/30 transition-all duration-200 active:scale-95">
+                    <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                        <i class="fas fa-sign-in-alt text-blue-300 group-hover:text-white transition-colors"></i>
+                    </span>
+                    {{ isLogin ? 'Se connecter' : 'Créer mon compte' }}
+                </button>
+            </div>
+
+            <div class="text-sm text-center pt-4">
+                <a href="javascript:void(0)" (click)="toggleMode()"
+                    class="font-semibold text-blue-600 hover:text-blue-800 transition-colors underline-offset-4 hover:underline">
+                    {{ isLogin ? 'Pas encore de compte ? Inscrivez-vous' : 'Déjà un compte ? Connectez-vous' }}
+                </a>
+            </div>
+        </form>
+    </div>
+</div>

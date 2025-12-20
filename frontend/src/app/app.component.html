@@ -1,0 +1,136 @@
+<!-- Layout wrapper: Flex container for Sidebar + Main Content -->
+<div class="flex h-screen w-full overflow-hidden">
+
+  <!-- SIDEBAR (Fixed) - Only visible when logged in -->
+  <aside *ngIf="authService.currentUser$ | async as user"
+    class="w-64 flex-shrink-0 flex flex-col glass-effect border-r border-white/10 relative z-50">
+
+    <!-- Logo Area -->
+    <div class="h-20 flex items-center px-8 border-b border-white/10">
+      <div
+        class="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center mr-3 shadow-lg shadow-indigo-500/30">
+        <i class="fas fa-bolt text-white text-sm"></i>
+      </div>
+      <span class="text-xl font-bold tracking-tight text-white">CacheFlow</span>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="flex-1 overflow-y-auto py-6 px-4 space-y-2">
+      <p class="px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Menu</p>
+
+      <a routerLink="/products" routerLinkActive="active-nav-link" class="nav-item group">
+        <span
+          class="w-8 h-8 rounded-lg bg-slate-800/50 flex items-center justify-center mr-3 group-hover:bg-indigo-500/20 transition-colors">
+          <i class="fas fa-box text-indigo-400 group-hover:text-indigo-300"></i>
+        </span>
+        <span class="font-medium text-slate-300 group-hover:text-white">Produits</span>
+      </a>
+
+      <a routerLink="/weather" routerLinkActive="active-nav-link" class="nav-item group">
+        <span
+          class="w-8 h-8 rounded-lg bg-slate-800/50 flex items-center justify-center mr-3 group-hover:bg-sky-500/20 transition-colors">
+          <i class="fas fa-cloud-sun text-sky-400 group-hover:text-sky-300"></i>
+        </span>
+        <span class="font-medium text-slate-300 group-hover:text-white">Météo</span>
+      </a>
+
+      <a routerLink="/currency" routerLinkActive="active-nav-link" class="nav-item group">
+        <span
+          class="w-8 h-8 rounded-lg bg-slate-800/50 flex items-center justify-center mr-3 group-hover:bg-amber-500/20 transition-colors">
+          <i class="fas fa-coins text-amber-400 group-hover:text-amber-300"></i>
+        </span>
+        <span class="font-medium text-slate-300 group-hover:text-white">Devises</span>
+      </a>
+    </nav>
+
+    <!-- User Profile / Logout (Bottom) -->
+    <div class="p-4 border-t border-white/10 bg-black/20">
+      <div class="flex items-center gap-3 mb-4">
+        <div
+          class="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 flex items-center justify-center text-white font-bold shadow-lg">
+          {{ user.username.charAt(0).toUpperCase() }}
+        </div>
+        <div class="overflow-hidden">
+          <p class="text-sm font-semibold text-white truncate">{{ user.username }}</p>
+          <p class="text-xs text-slate-400 truncate">Premium User</p>
+        </div>
+      </div>
+      <button (click)="logout()"
+        class="w-full flex items-center justify-center px-4 py-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all font-medium text-sm border border-red-500/20">
+        <i class="fas fa-sign-out-alt mr-2"></i> Déconnexion
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT AREA (Scrollable) -->
+  <main class="flex-1 flex flex-col h-full overflow-hidden relative">
+
+    <!-- Top Header (Contextual) -->
+    <header *ngIf="authService.currentUser$ | async"
+      class="h-20 flex-shrink-0 flex items-center justify-between px-8 border-b border-white/5 bg-white/5 backdrop-blur-sm z-40">
+      <div>
+        <h2 class="text-lg font-semibold text-white">Tableau de bord</h2>
+        <p class="text-xs text-slate-400">Bienvenue sur votre espace CacheFlow</p>
+      </div>
+      <div class="flex items-center gap-4">
+        <app-notification></app-notification>
+      </div>
+    </header>
+
+    <!-- Scrollable Content -->
+    <div class="flex-1 overflow-y-auto p-8 scroll-smooth" #scrollContainer>
+
+      <!-- Router Outlet -->
+      <div class="max-w-7xl mx-auto pb-10">
+        <router-outlet></router-outlet>
+      </div>
+
+      <!-- Footer (Inside scroll area but at bottom) -->
+      <footer class="mt-auto py-6 text-center border-t border-white/5">
+        <p class="text-slate-500 text-xs font-medium">© 2025 CacheFlow System. All rights reserved.</p>
+      </footer>
+
+    </div>
+
+  </main>
+</div>
+
+<!-- Styles Specific to this Component -->
+<style>
+  /* Glassmorphism for Sidebar */
+  .glass-effect {
+    background: rgba(15, 23, 42, 0.6);
+    /* Slate-900 with opacity */
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid transparent;
+  }
+
+  .nav-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.05);
+  }
+
+  .active-nav-link {
+    background: rgba(99, 102, 241, 0.15) !important;
+    /* Indigo tint */
+    border-color: rgba(99, 102, 241, 0.3) !important;
+  }
+
+  .active-nav-link span.text-slate-300 {
+    color: #fff !important;
+  }
+
+  .active-nav-link i {
+    color: #818cf8 !important;
+    /* Indigo-400 */
+  }
+</style>
