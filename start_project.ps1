@@ -21,3 +21,11 @@ Start-Sleep -Seconds 5
 Write-Host "Starting Backend..."
 cd backend
 ./mvnw spring-boot:run
+
+Write-Host "Waiting for backend to start..."
+Start-Sleep -Seconds 5
+
+
+Write-Host "Starting Frontend..."
+cd ../frontend
+npm start
