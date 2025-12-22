@@ -2,7 +2,8 @@ package com.jee.backend.service;
 
 import com.jee.backend.model.User;
 import com.jee.backend.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -14,29 +15,33 @@ import java.util.ArrayList;
 @Service
 public class UserService implements UserDetailsService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        System.out.println("UserDetailsService looking up user: " + username);
+        logger.info("UserDetailsService looking up user: {}", username);
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> {
-                    System.out.println("UserDetailsService: User not found -> " + username);
+                    logger.warn("UserDetailsService: User not found -> {}", username);
                     return new UsernameNotFoundException("User not found with username: " + username);
                 });
 
-        System.out.println("UserDetailsService found user: " + user.getUsername());
+        logger.info("UserDetailsService found user: {}", user.getUsername());
         
         if (user.getUsername() == null || user.getUsername().trim().isEmpty()) {
-            System.err.println("CRITICAL: Found user document but username is null or empty! ID: " + user.getId());
+            logger.error("CRITICAL: Found user document but username is null or empty! ID: {}", user.getId());
             throw new UsernameNotFoundException("User found but has invalid data (username missing)");
         }
         if (user.getPassword() == null) {
-            System.err.println("CRITICAL: Found user document but password is null! Username: " + user.getUsername());
+            logger.error("CRITICAL: Found user document but password is null! Username: {}", user.getUsername());
             throw new UsernameNotFoundException("User found but has invalid data (password missing)");
         }
 
@@ -54,5 +59,9 @@ public class UserService implements UserDetailsService {
     
     public Boolean existsByUsername(String username) {
         return userRepository.existsByUsername(username);
+    }
+    
+    public Boolean existsByEmail(String email) {
+        return userRepository.existsByEmail(email);
     }
 }

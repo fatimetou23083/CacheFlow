@@ -2,113 +2,169 @@ package com.jee.backend.controller;
 
 import com.jee.backend.model.User;
 import com.jee.backend.service.UserService;
+import com.jee.backend.dto.LoginRequest;
+import com.jee.backend.dto.RegisterRequest;
+import com.jee.backend.dto.AuthResponse;
+import com.jee.backend.exception.UserAlreadyExistsException;
+import com.jee.backend.exception.InvalidCredentialsException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
 @CrossOrigin(origins = {"http://localhost:4200", "http://localhost:59461", "http://localhost:8081"}, allowCredentials = "true")
 public class AuthController {
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
-    @Autowired
-    private UserService userService;
+    private final AuthenticationManager authenticationManager;
+    private final UserService userService;
+
+    public AuthController(AuthenticationManager authenticationManager, UserService userService) {
+        this.authenticationManager = authenticationManager;
+        this.userService = userService;
+    }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Map<String, String> loginRequest, HttpSession session) {
+    public ResponseEntity<AuthResponse> login(
+            @Valid @RequestBody LoginRequest loginRequest,
+            HttpSession session) {
+        
+        logger.info("Processing login for user: {}", loginRequest.getUsername());
+        
         try {
-            String username = loginRequest.get("username");
-            String password = loginRequest.get("password");
-
-            // Log parameters (without logging password)
-            System.out.println("Processing login request. Keys: " + loginRequest.keySet());
-            if (username == null || username.trim().isEmpty()) {
-                System.err.println("Login failed: Username is missing or empty.");
-                return ResponseEntity.badRequest().body("Error: Username is required.");
-            }
-            if (password == null || password.trim().isEmpty()) {
-                System.err.println("Login failed: Password is missing or empty.");
-                return ResponseEntity.badRequest().body("Error: Password is required.");
-            }
-
-            System.out.println("Processing login for user: " + username);
-            
+            // Authentification avec AuthenticationManager
             Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(username, password)
+                new UsernamePasswordAuthenticationToken(
+                    loginRequest.getUsername(),
+                    loginRequest.getPassword()
+                )
             );
             
-            System.out.println("Authentication successful for: " + authentication.getName());
-
+            logger.info("Authentication successful for: {}", authentication.getName());
+            
+            // Stockage du contexte de sécurité dans la session
             SecurityContextHolder.getContext().setAuthentication(authentication);
             session.setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext());
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("message", "Login successful");
-            response.put("username", authentication.getName());
-            response.put("sessionId", session.getId());
+            
+            // Réponse réussie
+            AuthResponse response = AuthResponse.success(
+                "Connexion réussie",
+                authentication.getName(),
+                session.getId()
+            );
             
             return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            System.err.println("LOGIN FAILED for user: " + loginRequest.get("username"));
-            System.err.println("Exception Class: " + e.getClass().getName());
-            System.err.println("Reason: " + e.getMessage());
-            e.printStackTrace(); // Print full stack trace to logs
             
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "Unauthorized");
-            errorResponse.put("message", "Connexion échouée : " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+        } catch (BadCredentialsException e) {
+            logger.error("LOGIN FAILED - Invalid credentials for user: {}", loginRequest.getUsername());
+            throw new InvalidCredentialsException(
+                "Les identifiants fournis sont invalides",
+                loginRequest.getUsername()
+            );
+        } catch (Exception e) {
+            logger.error("LOGIN FAILED - Unexpected error for user: {}, Exception: {}", 
+                        loginRequest.getUsername(), e.getClass().getName(), e);
+            throw new InvalidCredentialsException(
+                "Erreur lors de l'authentification : " + e.getMessage(),
+                loginRequest.getUsername()
+            );
         }
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody User user) {
-        System.out.println("Processing registration for user: " + user.getUsername());
-        if (userService.existsByUsername(user.getUsername())) {
-            System.out.println("Registration failed: Username already taken");
-            return ResponseEntity.badRequest().body("Error: Username is already taken!");
+    public ResponseEntity<AuthResponse> register(
+            @Valid @RequestBody RegisterRequest registerRequest) {
+        
+        logger.info("Processing registration for user: {}", registerRequest.getUsername());
+        
+        // Vérifier si l'utilisateur existe déjà
+        if (userService.existsByUsername(registerRequest.getUsername())) {
+            logger.warn("Registration failed: Username already exists - {}", registerRequest.getUsername());
+            throw new UserAlreadyExistsException(
+                "Ce nom d'utilisateur est déjà pris",
+                "username",
+                registerRequest.getUsername()
+            );
         }
-
-        userService.save(user);
-        System.out.println("User registered successfully: " + user.getUsername());
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "User registered successfully!");
-        return ResponseEntity.ok(response);
+        
+        // Vérifier si l'email existe déjà
+        if (userService.existsByEmail(registerRequest.getEmail())) {
+            logger.warn("Registration failed: Email already exists - {}", registerRequest.getEmail());
+            throw new UserAlreadyExistsException(
+                "Cet email est déjà associé à un compte",
+                "email",
+                registerRequest.getEmail()
+            );
+        }
+        
+        // Créer le nouvel utilisateur
+        User newUser = new User();
+        newUser.setUsername(registerRequest.getUsername());
+        newUser.setEmail(registerRequest.getEmail());
+        newUser.setPassword(registerRequest.getPassword());
+        newUser.setRole(registerRequest.getRole() != null ? registerRequest.getRole() : "USER");
+        
+        // Sauvegarder l'utilisateur
+        User savedUser = userService.save(newUser);
+        logger.info("User registered successfully: {}", savedUser.getUsername());
+        
+        // Réponse réussie
+        AuthResponse response = AuthResponse.success(
+            "Enregistrement réussi ! Vous pouvez maintenant vous connecter.",
+            savedUser.getUsername()
+        );
+        
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
     
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletRequest request) {
+    public ResponseEntity<AuthResponse> logout(HttpServletRequest request) {
+        logger.info("Processing logout request");
+        
         HttpSession session = request.getSession(false);
         if (session != null) {
             session.invalidate();
+            logger.info("Session invalidated successfully");
         }
+        
         SecurityContextHolder.clearContext();
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Logged out successfully");
+        
+        AuthResponse response = AuthResponse.success(
+            "Déconnexion réussie",
+            null
+        );
+        
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/me")
-    public ResponseEntity<?> getCurrentUser(Authentication authentication) {
+    public ResponseEntity<AuthResponse> getCurrentUser(Authentication authentication) {
+        logger.info("Checking current user session");
+        
         if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            logger.warn("No authenticated user found");
+            throw new InvalidCredentialsException("Aucun utilisateur authentifié");
         }
-        Map<String, Object> response = new HashMap<>();
-        response.put("username", authentication.getName());
-        response.put("authenticated", true);
+        
+        logger.info("Current authenticated user: {}", authentication.getName());
+        
+        AuthResponse response = new AuthResponse();
+        response.setSuccess(true);
+        response.setMessage("Utilisateur authentifié");
+        response.setUsername(authentication.getName());
+        
         return ResponseEntity.ok(response);
     }
 }
